@@ -1,3 +1,4 @@
+from chain_ensembles import LLMChain
 from flask import Flask, request, jsonify
 import os
 import pandas as pd
@@ -8,17 +9,18 @@ from transformers import (
     T5ForConditionalGeneration,
     BitsAndBytesConfig,
 )
-from transformers import BitsAndBytesConfig
 import uuid
 
 app = Flask(__name__)
 
 UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', 'user_uploads')
 OFFLOAD_FOLDER = './offload'
-os.makedirs(OFFLOAD_FOLDER, exist_ok=True) 
+OUTPUT_DIR = './chain_out' 
+os.makedirs(OFFLOAD_FOLDER, exist_ok=True)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024 
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -32,45 +34,28 @@ def upload_file():
         print("Invalid file type.")
         return jsonify({"error": "Only CSV files are allowed"}), 400
     token_input = request.form.get('hfToken')
+    model_names = request.form.getlist('modelNames')
+    confidence_scores = request.form.getlist('confidenceScores')
 
     if not token_input:
         print("HuggingFace token is missing.")
         return jsonify({"error": "HuggingFace token is required"}), 400
 
-    # Save CSV file with a unique filename
+    if not model_names:
+        print("No models selected.")
+        return jsonify({"error": "At least one model must be selected."}), 400
+
+    confidence_scores = [float(score) if score else 0.0 for score in confidence_scores]
+    
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], f"{uuid.uuid4().hex}.csv")
     try:
         csv_file.save(file_path)
         print(f"File saved to: {file_path}")
-        print("User uploads folder content:", os.listdir(app.config['UPLOAD_FOLDER']))
     except Exception as e:
         print(f"Error saving file: {e}")
         return jsonify({'error': f'Error saving file: {str(e)}'}), 500
 
-    # Initialize HuggingFaceLink
     try:
-        # quant_config = BitsAndBytesConfig(
-        #     load_in_8bit=True,  # Enable 8-bit quantization
-        #     llm_int8_enable_fp32_cpu_offload=True  # Enable offloading to CPU if needed
-        # )
-
-        hf_link = HuggingFaceLink(
-            model_name="google/flan-t5-small",
-            #"meta-llama/Llama-3.3-70B-Instruct",
-            model_class=T5ForConditionalGeneration,
-            #AutoModelForCausalLM,
-            labels=["FOR", "AGAINST", "NEUTRAL"],
-            hf_token=token_input,
-            # quantization_config=quant_config,
-        )
-        hf_link.load_model()
-
-    except Exception as e:
-        print(f"Error initializing HuggingFaceLink: {e}")
-        return jsonify({'error': f'Error initializing HuggingFaceLink: {str(e)}'}), 500
-
-    try:
-        # Load CSV and validate columns
         data = pd.read_csv(file_path)
         if data.empty:
             print("Uploaded CSV is empty.")
@@ -81,12 +66,10 @@ def upload_file():
             print("Missing required columns.")
             return jsonify({'error': f'CSV must contain columns: {", ".join(required_columns)}'}), 400
 
-        # I think target is "opinion towards", other columns are truth labels
         prompts = []
         for _, row in data.iterrows():
             tweet = row['Tweet']
             target = row['Target']
-            #Change prompt structure if necessary
             prompt = (
                 f'"{tweet}"\n'
                 f'What is the stance of the previous statement toward {target}?\n'
@@ -94,18 +77,37 @@ def upload_file():
             )
             prompts.append(prompt)
 
-        results = hf_link.get_labels(prompts=prompts)
+        labels = ["for", "against", "neutral"]
+        
+        model_links = []
+        for model_name in model_names:
+            model_links.append(
+                HuggingFaceLink(
+                    model_name=model_name, 
+                    model_class=AutoModelForCausalLM if "llama" in model_name.lower() else T5ForConditionalGeneration, 
+                    labels=labels,
+                    hf_token=token_input,
+                    #quantization_config=BitsAndBytesConfig(load_in_8bit=True)
+                )
+            )
 
-        # Add results to the final annotated data
+        prompt_df = pd.DataFrame({"prompts": prompts})
+        
+        llm_chain = LLMChain(chain_list=model_links)
+        CoT_setting = [False] * len(model_names)
+        
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+        results = llm_chain.run_chain(prompt_df, OUTPUT_DIR, CoT_setting)
+
         data['pred_label'] = results['pred_label']
         data['conf_score'] = results['conf_score']
         data['label_logprobs'] = results['label_logprobs']
         data['raw_pred_label'] = results['raw_pred_label']
-
+        
+        for idx, threshold in enumerate(confidence_scores):
+            data = data[data['conf_score'] >= threshold]
+        
         os.makedirs('uploads', exist_ok=True)
-        print("Uploads folder created or already exists.")
-
-        # Save the annotated file with a unique filename
         output_file = os.path.join('uploads', f'annotated_data_{uuid.uuid4().hex}.csv')
         try:
             data.to_csv(output_file, index=False)
@@ -121,4 +123,3 @@ def upload_file():
 
 if __name__ == '__main__':
     app.run(debug=os.getenv('DEBUG_MODE', 'false').lower() == 'true')
-
