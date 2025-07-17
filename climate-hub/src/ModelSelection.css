@@ -41,3 +41,19 @@
     margin-top: 20px;
   }
   
+  .remove-model-button {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .remove-model-button:hover {
+    background-color: #d93636;
+  }
+  

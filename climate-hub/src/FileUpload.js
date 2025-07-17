@@ -1,59 +1,54 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from "./components/ui/button";
-import { Input } from "./components/ui/input";
-import { ArrowRight } from 'lucide-react';
-import './FileUpload.css'; 
+import React, { useState, useEffect } from "react";
 
-export default function FileUpload({ onSave, onNext }) {
+export default function FileUpload({ onSave, onNext, savedFile, savedToken }) {
   const [file, setFile] = useState(null);
-  const [token, setToken] = useState('');
-  const [isSaved, setIsSaved] = useState(false);
+  const [token, setToken] = useState("");
 
   useEffect(() => {
-    const savedFile = localStorage.getItem("csvFile");
-    const savedToken = localStorage.getItem("hfToken");
-    if (savedFile) setFile(savedFile);
-    if (savedToken) setToken(savedToken);
-  }, []);
+    if (savedFile) {
+      setFile(savedFile);
+    }
+    if (savedToken) {
+      setToken(savedToken);
+    }
+  }, [savedFile, savedToken]);
 
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile);
   };
 
   const handleSave = () => {
-    if (file && token) {
-      onSave(file, token);
-      setIsSaved(true);
-      localStorage.setItem("csvFile", file.name);
-      localStorage.setItem("hfToken", token);
-    } else {
-      alert("Please upload a CSV file and enter the token before saving.");
+    if (!file || !token) {
+      alert("Please upload a file and enter your Hugging Face token.");
+      return;
     }
-  };
-
-  const handleNext = () => {
-    if (isSaved) {
-      onNext();
-    } else {
-      alert("Please save your data before proceeding.");
-    }
+    onSave(file, token);
+    alert("Saved successfully.");
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-xl mx-auto">
-      <h2 className="text-xl font-bold">Upload CSV & Enter Hugging Face Token</h2>
-      <Input type="file" accept=".csv" onChange={handleFileChange} />
-      <Input 
-        type="text" 
-        placeholder="Enter Hugging Face Token" 
-        value={token} 
-        onChange={(e) => setToken(e.target.value)} 
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      <h2>Upload File and Token</h2>
+
+      {file?.name && (
+        <p style={{ fontStyle: "italic", color: "#555" }}>
+          Current file: {file.name}
+        </p>
+      )}
+
+      <input type="file" accept=".csv" onChange={handleFileChange} />
+      <input
+        type="text"
+        placeholder="Enter Hugging Face Token"
+        value={token}
+        onChange={(e) => setToken(e.target.value)}
+        style={{ padding: "8px", borderRadius: "6px", border: "1px solid #ccc" }}
       />
-      <div className="flex justify-between">
-        <Button onClick={handleSave} variant="secondary">Save</Button>
-        <Button onClick={handleNext} variant="primary">
-          Next <ArrowRight className="w-4 h-4 ml-2" />
-        </Button>
+
+      <div style={{ display: "flex", gap: "12px" }}>
+        <button onClick={handleSave}>Save</button>
+        <button onClick={onNext}>Next</button>
       </div>
     </div>
   );

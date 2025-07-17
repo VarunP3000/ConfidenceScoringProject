@@ -1,0 +1,43 @@
+.annotated-files-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .annotated-files-container h2 {
+    font-size: 28px;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  
+  .file-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .file-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f9f9f9;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    transition: background 0.2s ease-in-out;
+  }
+  
+  .file-list li:hover {
+    background: #e6f0ff;
+  }
+  
+  .download-link {
+    text-decoration: none;
+    color: #0066cc;
+    font-weight: 500;
+  }
+  
+  .download-link:hover {
+    text-decoration: underline;
+  }
+  

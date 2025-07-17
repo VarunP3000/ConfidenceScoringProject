@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import { Select } from "./components/ui/select";
-import { Plus, ArrowLeft, ArrowRight } from 'lucide-react';
-import './ModelSelection.css'; 
+import { Plus, ArrowLeft, ArrowRight, X } from 'lucide-react';
+import './ModelSelection.css';
 
 const modelOptions = {
   small: [
-    'meta-llama/Meta-Llama-3.1-8B-Instruct',
-    'mistralai/Mistral-7B-Instruct-v0.2',
-    'gemma/Gemma-2-6B'
+    'meta-llama/Meta-Llama-3.3-8B-Instruct',
+    'mistralai/Mistral-7B-Instruct-v0.3',
+    'gemma/Gemma-2-6B',
+    'google/flan-t5-small'
   ],
   medium: [
     'google/flan-ul2',
@@ -40,11 +41,16 @@ export default function ModelSelection({ onSave, onBack, onSubmit }) {
     setModels(newModels);
   };
 
+  const removeModel = (indexToRemove) => {
+    const updatedModels = models.filter((_, idx) => idx !== indexToRemove);
+    setModels(updatedModels);
+  };
+
   return (
     <div className="p-6 space-y-6 max-w-xl mx-auto">
       <h2 className="text-xl font-bold">Select Models and Confidence Scores</h2>
       {models.map((model, index) => (
-        <div key={index} className="flex items-center space-x-4">
+        <div key={index} className="flex items-center space-x-4 model-row">
           <Select
             value={model.name}
             onChange={(e) => updateModel(index, 'name', e.target.value)}
@@ -60,6 +66,15 @@ export default function ModelSelection({ onSave, onBack, onSubmit }) {
             value={model.confidence}
             onChange={(e) => updateModel(index, 'confidence', e.target.value)}
           />
+          {models.length > 1 && model.level !== 'small' && (
+            <button
+              className="remove-model-button"
+              onClick={() => removeModel(index)}
+              title="Remove Model"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
       ))}
       {models.length < 3 && (
