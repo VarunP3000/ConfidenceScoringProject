@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { Link, Routes, Route } from "react-router-dom";
 import FileUpload from "./FileUpload";
 import ModelSelection from "./ModelSelection";
@@ -8,28 +8,35 @@ import Login from "./auth/Login";
 import SignUp from "./auth/SignUp";
 import Home from "./Home";
 import AnnotatedFiles from "./annotated_files/AnnotatedFiles";
+import { GlobalProvider, GlobalContext } from "./GlobalContext";
 import "./App.css";
 
-export default function App() {
+function AppContent() {
+  const {
+    csvFile, setCsvFile,
+    hfToken, setHfToken,
+    models, setModels,
+    downloadUrl, setDownloadUrl
+  } = useContext(GlobalContext);
+
   const [step, setStep] = useState(1);
-  const [csvFile, setCsvFile] = useState(null);
-  const [hfToken, setHfToken] = useState("");
-  const [models, setModels] = useState([]);
   const [user, setUser] = useState(null);
-  const [downloadUrl, setDownloadUrl] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
     });
 
+    // ✅ Only restore token and file if user explicitly saved
     const savedToken = localStorage.getItem("hfToken");
+    const tokenSaved = localStorage.getItem("fileWasSaved") === "true";
+    if (savedToken && tokenSaved && typeof setHfToken === "function") {
+      setHfToken(savedToken);
+    }
+
     const base64 = sessionStorage.getItem("csvFileBase64");
     const name = sessionStorage.getItem("csvFileName");
-
-    if (savedToken) setHfToken(savedToken);
-
-    if (base64 && name) {
+    if (base64 && name && tokenSaved && typeof setCsvFile === "function") {
       const byteString = atob(base64.split(',')[1]);
       const mimeString = base64.split(',')[0].split(':')[1].split(';')[0];
       const ab = new ArrayBuffer(byteString.length);
@@ -41,11 +48,15 @@ export default function App() {
       setCsvFile(restoredFile);
     }
 
+    // ✅ Only restore models if user explicitly saved
     const savedModels = localStorage.getItem("models");
-    if (savedModels) setModels(JSON.parse(savedModels));
+    const modelsSaved = localStorage.getItem("modelsWereSaved") === "true";
+    if (savedModels && modelsSaved && typeof setModels === "function") {
+      setModels(JSON.parse(savedModels));
+    }
 
     return () => unsubscribe();
-  }, []);
+  }, [setCsvFile, setHfToken, setModels]);
 
   const handleSubmit = async () => {
     if (!csvFile || !hfToken || models.length === 0) {
@@ -127,31 +138,11 @@ export default function App() {
             <div className="section-container">
               {step === 1 ? (
                 <div className="file-upload">
-                  <FileUpload
-                    onSave={(file, token) => {
-                      setCsvFile(file);
-                      setHfToken(token);
-                      localStorage.setItem("hfToken", token);
-
-                      const reader = new FileReader();
-                      reader.onload = () => {
-                        sessionStorage.setItem("csvFileBase64", reader.result);
-                        sessionStorage.setItem("csvFileName", file.name);
-                      };
-                      reader.readAsDataURL(file);
-                    }}
-                    onNext={() => setStep(2)}
-                    savedFile={csvFile}
-                    savedToken={hfToken}
-                  />
+                  <FileUpload onNext={() => setStep(2)} />
                 </div>
               ) : (
                 <div className="model-selection">
                   <ModelSelection
-                    onSave={(models) => {
-                      setModels(models);
-                      localStorage.setItem("models", JSON.stringify(models));
-                    }}
                     onBack={() => setStep(1)}
                     onSubmit={handleSubmit}
                   />
@@ -173,5 +164,13 @@ export default function App() {
         </Routes>
       </main>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <GlobalProvider>
+      <AppContent />
+    </GlobalProvider>
   );
 }

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
+import { GlobalContext } from './GlobalContext';
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import { Select } from "./components/ui/select";
@@ -24,70 +25,117 @@ const modelOptions = {
   ]
 };
 
-export default function ModelSelection({ onSave, onBack, onSubmit }) {
-  const [models, setModels] = useState([
-    { name: '', confidence: '', level: 'small' }
-  ]);
+export default function ModelSelection({ onBack, onSubmit }) {
+  const { setModels } = useContext(GlobalContext); // only used on save
+  const [localModels, setLocalModels] = useState([]);
+
+  useEffect(() => {
+    const modelsWereSaved = localStorage.getItem("modelsWereSaved") === "true";
+    const savedModels = localStorage.getItem("models");
+
+    if (modelsWereSaved && savedModels) {
+      try {
+        const parsed = JSON.parse(savedModels);
+        if (Array.isArray(parsed)) {
+          setLocalModels(parsed);
+          return;
+        }
+      } catch (err) {
+        console.error("Failed to parse saved models:", err);
+      }
+    }
+
+    // fallback: default empty input row
+    setLocalModels([{ name: '', confidence: '', level: 'small' }]);
+  }, []);
 
   const addModel = () => {
-    const lastLevel = models[models.length - 1].level;
+    const lastLevel = localModels[localModels.length - 1]?.level || 'small';
     const nextLevel = lastLevel === 'small' ? 'medium' : 'large';
-    setModels([...models, { name: '', confidence: '', level: nextLevel }]);
+    setLocalModels([...localModels, { name: '', confidence: '', level: nextLevel }]);
   };
 
   const updateModel = (index, field, value) => {
-    const newModels = [...models];
-    newModels[index][field] = value;
-    setModels(newModels);
+    const updated = [...localModels];
+    updated[index][field] = value;
+    setLocalModels(updated);
   };
 
-  const removeModel = (indexToRemove) => {
-    const updatedModels = models.filter((_, idx) => idx !== indexToRemove);
-    setModels(updatedModels);
+  const removeModel = (index) => {
+    setLocalModels(localModels.filter((_, i) => i !== index));
+  };
+
+  const handleSave = () => {
+    localStorage.setItem("models", JSON.stringify(localModels));
+    localStorage.setItem("modelsWereSaved", "true");
+    setModels(localModels); // only update context on Save
+    alert("Models saved.");
+  };
+
+  const handleSubmit = () => {
+    onSubmit(localModels); // don't update context here
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-xl mx-auto">
-      <h2 className="text-xl font-bold">Select Models and Confidence Scores</h2>
-      {models.map((model, index) => (
-        <div key={index} className="flex items-center space-x-4 model-row">
-          <Select
-            value={model.name}
-            onChange={(e) => updateModel(index, 'name', e.target.value)}
-          >
-            <option value="" disabled>Select Model</option>
-            {modelOptions[model.level].map((option) => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </Select>
-          <Input
-            type="number"
-            placeholder="Confidence Score"
-            value={model.confidence}
-            onChange={(e) => updateModel(index, 'confidence', e.target.value)}
-          />
-          {models.length > 1 && model.level !== 'small' && (
+    <div className="model-selection-container">
+      <h1>Select Models and Confidence Scores</h1>
+      <p>Choose models and assign scores to ensemble them effectively.</p>
+
+      {localModels.map((model, index) => (
+        <div key={index} className="model-row">
+          <div className="model-inputs">
+            <Select
+              className="select-model"
+              value={model.name}
+              onChange={(e) => updateModel(index, 'name', e.target.value)}
+            >
+              <option value="" disabled>Select Model</option>
+              {modelOptions[model.level].map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </Select>
+
+            <Input
+              className="confidence-input"
+              type="number"
+              placeholder="Confidence Score"
+              value={model.confidence}
+              onChange={(e) => updateModel(index, 'confidence', e.target.value)}
+              min="0"
+              max="1"
+              step="0.01"
+            />
+          </div>
+
+          {localModels.length > 1 && (
             <button
               className="remove-model-button"
               onClick={() => removeModel(index)}
               title="Remove Model"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
           )}
         </div>
       ))}
-      {models.length < 3 && (
-        <Button onClick={addModel} variant="outline" className="flex items-center">
-          <Plus className="w-4 h-4 mr-2" /> Add Model
+
+      {localModels.length < 3 && (
+        <Button onClick={addModel} className="add-model-button mt-4">
+          <Plus className="w-4 h-4 mr-2" />
+          Add Model
         </Button>
       )}
-      <div className="flex justify-between">
-        <Button onClick={onBack} variant="outline">
+
+      <div className="button-group mt-6">
+        <Button onClick={onBack} className="primary-button">
           <ArrowLeft className="w-4 h-4 mr-2" /> Back
         </Button>
-        <Button onClick={() => onSave(models)} variant="secondary">Save</Button>
-        <Button onClick={() => onSubmit(models)} variant="primary">
+        <Button onClick={handleSave} className="primary-button">
+          Save
+        </Button>
+        <Button onClick={handleSubmit} className="primary-button">
           Submit <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
       </div>

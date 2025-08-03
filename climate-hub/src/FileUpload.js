@@ -1,16 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState, useContext } from "react";
+import { GlobalContext } from "./GlobalContext";
 
-export default function FileUpload({ onSave, onNext, savedFile, savedToken }) {
+export default function FileUpload({ onNext }) {
+  const { csvFile: savedFile, setCsvFile, hfToken: savedToken, setHfToken } = useContext(GlobalContext);
   const [file, setFile] = useState(null);
   const [token, setToken] = useState("");
 
   useEffect(() => {
-    if (savedFile) {
-      setFile(savedFile);
-    }
-    if (savedToken) {
-      setToken(savedToken);
-    }
+    if (savedFile) setFile(savedFile);
+    if (savedToken) setToken(savedToken);
   }, [savedFile, savedToken]);
 
   const handleFileChange = (e) => {
@@ -23,7 +21,20 @@ export default function FileUpload({ onSave, onNext, savedFile, savedToken }) {
       alert("Please upload a file and enter your Hugging Face token.");
       return;
     }
-    onSave(file, token);
+
+    setCsvFile(file);
+    setHfToken(token);
+
+    localStorage.setItem("hfToken", token);
+    localStorage.setItem("fileWasSaved", "true"); // ✅ new flag
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      sessionStorage.setItem("csvFileBase64", reader.result);
+      sessionStorage.setItem("csvFileName", file.name);
+    };
+    reader.readAsDataURL(file);
+
     alert("Saved successfully.");
   };
 

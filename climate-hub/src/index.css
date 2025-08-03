@@ -31,3 +31,7 @@ code {
   font-size: 16px;
   color: #555;
 }
+
+h1, h2, h3, p {
+  font-family: 'Kumbh Sans', sans-serif;
+}

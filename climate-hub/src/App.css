@@ -1,13 +1,11 @@
-/* Global Reset */
-* { 
+* {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
     font-family: 'Kumbh Sans', sans-serif;
-}
-
-/* Top Bar */
-.top-bar {
+  }
+  
+  .top-bar {
     background: #131313;
     color: white;
     display: flex;
@@ -18,31 +16,28 @@
     top: 0;
     width: 100%;
     z-index: 999;
-    font-family: 'Kumbh Sans', sans-serif;
-}
-
-.left-nav,
-.right-nav {
+  }
+  
+  .left-nav,
+  .right-nav {
     display: flex;
     align-items: center;
     gap: 1.25rem;
-}
-
-.logo {
+  }
+  
+  .logo {
     font-size: 1.25rem;
     font-weight: bold;
     color: white;
     text-decoration: none;
-    font-family: 'Kumbh Sans', sans-serif;
-}
-
-.nav-button,
-.auth-link,
-.signout-button {
+  }
+  
+  .nav-button,
+  .auth-link,
+  .signout-button {
     background: none;
     border: none;
     color: white;
-    font-family: 'Kumbh Sans', sans-serif;
     font-weight: 500;
     font-size: 1rem;
     cursor: pointer;
@@ -50,67 +45,65 @@
     padding: 8px 16px;
     transition: background 0.3s ease, color 0.3s ease;
     border-radius: 6px;
-}
-
-.nav-button:hover,
-.auth-link:hover,
-.signout-button:hover {
+  }
+  
+  .nav-button:hover,
+  .auth-link:hover,
+  .signout-button:hover {
     background-color: rgba(255, 255, 255, 0.1);
     color: #ffb199;
-}
-
-/* App Container */
-.app-container {
+  }
+  
+  .app-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    padding: 40px 20px;
-    background-color: #f4f4f4;
-}
-
-/* Main Content */
-.content {
-    width: 80%;
+    padding: 80px 20px 40px;
+    background-color: #f7f7f7;
+  }
+  
+  .content {
+    width: 100%;
     max-width: 900px;
     background: white;
-    padding: 40px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 60px;
+    border-radius: 24px;
+    box-shadow: 0px 12px 40px rgba(0, 0, 0, 0.08);
     margin-top: 30px;
-}
-
-/* Spacing for child components */
-.file-upload,
-.model-selection {
+  }
+  
+  .file-upload,
+  .model-selection {
     width: 100%;
     margin-top: 30px;
-    padding: 30px;
-    border-radius: 8px;
+    padding: 40px;
+    border-radius: 20px;
     background: #ffffff;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Buttons */
-button {
+    box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.06);
+  }
+  
+  /* Buttons */
+  button {
     margin-top: 20px;
-    padding: 12px 24px;
+    padding: 14px 28px;
     border: none;
-    border-radius: 6px;
-    background: #f77062;
+    border-radius: 30px;
+    background: black;
     color: white;
-    font-size: 1rem;
+    font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
     transition: background 0.3s ease;
-}
-
-button:hover {
-    background: #4873ff;
-}
-
-/* Drag-and-Drop Area */
-.dropzone {
+  }
+  
+  button:hover {
+    background: #333;
+  }
+  
+  /* Drag-and-Drop Area */
+  .dropzone {
     border: 2px dashed #ccc;
     padding: 30px;
     text-align: center;
@@ -118,41 +111,43 @@ button:hover {
     background-color: #f9f9f9;
     margin-top: 30px;
     transition: background-color 0.3s ease;
-}
-
-.dropzone:hover {
+    border-radius: 16px;
+  }
+  
+  .dropzone:hover {
     background-color: #f0f0f0;
-}
-
-.dropzone p {
+  }
+  
+  .dropzone p {
     font-size: 18px;
     color: #555;
-}
-
-/* Responsive Design */
-@media screen and (max-width: 768px) {
+  }
+  
+  /* Responsive Design */
+  @media screen and (max-width: 768px) {
     .content {
-        width: 90%;
-        padding: 25px;
+      width: 90%;
+      padding: 30px;
     }
-
+  
     .file-upload,
     .model-selection {
-        padding: 20px;
+      padding: 24px;
     }
-
+  
     .dropzone {
-        padding: 25px;
+      padding: 24px;
     }
-
+  
     .left-nav,
     .right-nav {
-        flex-direction: column;
-        gap: 0.5rem;
+      flex-direction: column;
+      gap: 0.5rem;
     }
-
+  
     .top-bar {
-        flex-direction: column;
-        align-items: flex-start;
+      flex-direction: column;
+      align-items: flex-start;
     }
-}
+  }
+  
