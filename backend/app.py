@@ -15,7 +15,7 @@ import os
 import shutil
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:3000"])  # Enable CORS for React frontend
+CORS(app, origins=["http://localhost:3000"])
 
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB
 

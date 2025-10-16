@@ -11,6 +11,6 @@ const firebaseConfig = {
   measurementId: "G-XT7KW3RMH6"
 };
 
-// Initialize Firebase
+//Feature not working now
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);

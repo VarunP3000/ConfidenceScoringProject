@@ -26,7 +26,7 @@ export default function FileUpload({ onNext }) {
     setHfToken(token);
 
     localStorage.setItem("hfToken", token);
-    localStorage.setItem("fileWasSaved", "true"); // ✅ new flag
+    localStorage.setItem("fileWasSaved", "true");
 
     const reader = new FileReader();
     reader.onload = () => {

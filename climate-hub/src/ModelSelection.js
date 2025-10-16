@@ -6,6 +6,7 @@ import { Select } from "./components/ui/select";
 import { Plus, ArrowLeft, ArrowRight, X } from 'lucide-react';
 import './ModelSelection.css';
 
+//Model options
 const modelOptions = {
   small: [
     'meta-llama/Meta-Llama-3.3-8B-Instruct',
@@ -44,8 +45,6 @@ export default function ModelSelection({ onBack, onSubmit }) {
         console.error("Failed to parse saved models:", err);
       }
     }
-
-    // fallback: default empty input row
     setLocalModels([{ name: '', confidence: '', level: 'small' }]);
   }, []);
 
@@ -68,12 +67,12 @@ export default function ModelSelection({ onBack, onSubmit }) {
   const handleSave = () => {
     localStorage.setItem("models", JSON.stringify(localModels));
     localStorage.setItem("modelsWereSaved", "true");
-    setModels(localModels); // only update context on Save
+    setModels(localModels); 
     alert("Models saved.");
   };
 
   const handleSubmit = () => {
-    onSubmit(localModels); // don't update context here
+    onSubmit(localModels);
   };
 
   return (
