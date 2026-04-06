@@ -6,7 +6,7 @@ import { auth } from "./firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import Login from "./auth/Login";
 import SignUp from "./auth/SignUp";
-import Home from "./Home";
+import Home from "./home";
 import AnnotatedFiles from "./annotated_files/AnnotatedFiles";
 import { GlobalProvider, GlobalContext } from "./GlobalContext";
 import "./App.css";
@@ -27,7 +27,6 @@ function AppContent() {
       setUser(firebaseUser);
     });
 
-    // ✅ Only restore token and file if user explicitly saved
     const savedToken = localStorage.getItem("hfToken");
     const tokenSaved = localStorage.getItem("fileWasSaved") === "true";
     if (savedToken && tokenSaved && typeof setHfToken === "function") {
@@ -48,7 +47,6 @@ function AppContent() {
       setCsvFile(restoredFile);
     }
 
-    // ✅ Only restore models if user explicitly saved
     const savedModels = localStorage.getItem("models");
     const modelsSaved = localStorage.getItem("modelsWereSaved") === "true";
     if (savedModels && modelsSaved && typeof setModels === "function") {
@@ -79,7 +77,9 @@ function AppContent() {
     }
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/upload", {
+      const API_URL = import.meta.env.VITE_API_URL;
+
+      const response = await fetch(`${API_URL}/upload`, {
         method: "POST",
         body: formData,
       });
