@@ -1,14 +1,6 @@
-from chain_ensembles import LLMChain
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import pandas as pd
-from chain_ensembles.hf_link import HuggingFaceLink
-from transformers import (
-    AutoTokenizer,
-    AutoModelForCausalLM,
-    T5ForConditionalGeneration,
-    BitsAndBytesConfig,
-)
 import io
 import uuid
 import os
@@ -22,8 +14,18 @@ CORS(app, origins=[
 
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB
 
+
+@app.route('/')
+def home():
+    return 'Backend is alive'
+
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
+    from chain_ensembles import LLMChain
+    from chain_ensembles.hf_link import HuggingFaceLink
+    from transformers import AutoModelForCausalLM, T5ForConditionalGeneration
+
     print("Starting file upload process.")
     if 'csvFile' not in request.files:
         print("No file in request.")
@@ -75,7 +77,9 @@ def upload_file():
         model_links = [
             HuggingFaceLink(
                 model_name=model_name,
-                model_class=AutoModelForCausalLM if any(x in model_name.lower() for x in ["llama", "mistral", "gemma"]) else T5ForConditionalGeneration,
+                model_class=AutoModelForCausalLM if any(
+                    x in model_name.lower() for x in ["llama", "mistral", "gemma"]
+                ) else T5ForConditionalGeneration,
                 labels=labels,
                 hf_token=token_input
             )
@@ -96,7 +100,7 @@ def upload_file():
         data['label_logprobs'] = results['label_logprobs']
         data['raw_pred_label'] = results['raw_pred_label']
 
-        for idx, threshold in enumerate(confidence_scores):
+        for threshold in confidence_scores:
             data = data[data['conf_score'] >= threshold]
 
         output = io.StringIO()
@@ -114,6 +118,7 @@ def upload_file():
         print(f"Error processing file: {e}")
         return jsonify({'error': f'Error processing file: {str(e)}'}), 500
 
+
 @app.route('/download/link/<int:link_num>', methods=['GET'])
 def download_link_df(link_num):
     pkl_path = f"./temp_output/link_{link_num}_df.pkl"
@@ -126,8 +131,7 @@ def download_link_df(link_num):
 
     return send_file(csv_path, as_attachment=True)
 
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
-
-
