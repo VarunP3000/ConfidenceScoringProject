@@ -7,10 +7,11 @@ import os
 import shutil
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": [
-    "http://localhost:3000",
-    "https://main.dtlbqyungw5dp.amplifyapp.com"
-]}})
+# CORS(app, resources={r"/*": {"origins": [
+#     "http://localhost:3000",
+#     "https://main.dtlbqyungw5dp.amplifyapp.com"
+# ]}})
+CORS(app)
 
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB
 
@@ -20,7 +21,8 @@ def home():
     return 'Backend is alive'
 
 
-@app.route('/upload', methods=['POST'])
+#@app.route('/upload', methods=['POST'])
+@app.route('/upload', methods=['POST', 'OPTIONS'])
 def upload_file():
     from chain_ensembles import LLMChain
     from chain_ensembles.hf_link import HuggingFaceLink
