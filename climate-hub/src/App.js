@@ -6,7 +6,7 @@ import { auth } from "./firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import Login from "./auth/Login";
 import SignUp from "./auth/SignUp";
-import Home from "./home";
+import Home from "./Home";
 import AnnotatedFiles from "./annotated_files/AnnotatedFiles";
 import { GlobalProvider, GlobalContext } from "./GlobalContext";
 import "./App.css";
