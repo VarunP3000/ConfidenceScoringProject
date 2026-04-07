@@ -7,10 +7,10 @@ import os
 import shutil
 
 app = Flask(__name__)
-CORS(app, origins=[
+CORS(app, resources={r"/*": {"origins": [
     "http://localhost:3000",
     "https://main.dtlbqyungw5dp.amplifyapp.com"
-])
+]}})
 
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB
 
