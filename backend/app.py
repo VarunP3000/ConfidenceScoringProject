@@ -127,6 +127,7 @@ def download_link_df(link_num):
     return send_file(csv_path, as_attachment=True)
 
 if __name__ == '__main__':
-    app.run(debug=os.getenv('DEBUG_MODE', 'false').lower() == 'true')
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
 
 
